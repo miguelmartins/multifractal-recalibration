@@ -78,7 +78,6 @@ class SynapseDataPreparer:
             yield np.array(train_x), np.array(train_y), np.array(val_x), np.array(val_y)
 
 
-
 class AugmentationModel:
     def __init__(self):
         self.aug_model = self._create_augment_model()
@@ -103,3 +102,7 @@ def normalize_fn(x, y, minimum_value=0., maximum_value=255.):
     y = tf.clip_by_value(y, clip_value_min=minimum_value, clip_value_max=maximum_value)
 
     return (x - minimum_value) / (maximum_value - minimum_value), (y - minimum_value) / (maximum_value - minimum_value)
+
+
+def fix_shape(x, y):
+    return tf.transpose(x, perm=[0, 2, 3, 1]), tf.transpose(y, perm=[0, 2, 3, 1])
