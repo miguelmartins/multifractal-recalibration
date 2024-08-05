@@ -5,9 +5,8 @@ import os
 import tensorflow as tf
 
 from config.custom_utils import get_cuda_device_environ, get_config_directory
-
-from etl.preprocessing import get_segmentation_data, AugmentationModel, normalize_fn
-from models.recalibrated_unet import get_monofractal_unet
+from etl.preprocessing import get_segmentation_data, normalize_fn, AugmentationModel
+from models.recalibrated_unet import get_multifractal_unet
 from config.parser import ExperimentConfigParser
 from sklearn.model_selection import KFold
 
@@ -21,7 +20,7 @@ DATA_PATH = '/home/miguelmartins/Datasets/kvasir-seg/Kvasir-SEG/'
 
 NUM_FOLDS = 5
 
-aug_model = AugmentationModel()
+
 def main():
     config_data = ExperimentConfigParser(name=f'kvasir-seg_pid{os.getpid()}',
                                          config_path=CONFIG_FILE,
@@ -35,16 +34,17 @@ def main():
     dataset_np_x = np.array([x for (x, _) in dataset]).squeeze(axis=1)
     dataset_np_y = np.array([y for (_, y) in dataset]).squeeze(axis=1)
 
+    aug_model = AugmentationModel()
     kf = KFold(n_splits=NUM_FOLDS, shuffle=False)
     for fold, (train_index, val_index) in enumerate(kf.split(dataset_np_x)):
         print(f"Fold {fold} starting...")
         fold_data = ExperimentConfigParser(
-            name=f'monofractal-cuda{get_cuda_device_environ()}-{NUM_FOLDS}-folds-{fold}-kvasir-seg_pid{os.getpid()}',
+            name=f'histogram-perchannelfalse-k16-sumk-cuda{get_cuda_device_environ()}-{NUM_FOLDS}-folds-{fold}-kvasir-seg_pid{os.getpid()}',
             config_path=CONFIG_FILE,
             log_dir=LOG_DIR)
-        model = get_monofractal_unet(channels_per_level=fold_data.config.model.level_depth,
-                                     input_shape=config_data.config.data.target_size + [3],
-                                     with_bn=False)
+        model = get_multifractal_unet(channels_per_level=fold_data.config.model.level_depth,
+                                      input_shape=config_data.config.data.target_size + [3],
+                                      with_bn=False)
         model.compile(loss=fold_data.loss_object,
                       optimizer=fold_data.optimizer_obj,
                       metrics=fold_data.metrics)
@@ -59,6 +59,7 @@ def main():
         train_ds = tf.data.Dataset.from_tensor_slices((x_train, y_train))
         train_ds = train_ds.batch(fold_data.config.training.batch_size, num_parallel_calls=tf.data.AUTOTUNE)
         train_ds = train_ds.map(aug_model.augment_binary_segmentation, num_parallel_calls=tf.data.experimental.AUTOTUNE)
+
         model.fit(train_ds,
                   epochs=fold_data.config.training.epochs,
                   batch_size=fold_data.config.training.batch_size,

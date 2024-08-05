@@ -174,10 +174,10 @@ class SharedSoftGroupAssignment(tf.keras.layers.Layer):
 
 class SoftHistogramLayer(tf.keras.layers.Layer):
     """
-    A TensorFlow Layer that determines a (soft) membership function for a set of (feature) point set categorizations
-    in a data driven fashion.
-    Implementation of Point Grouping Block (equations 9 through 12) of:
+    Inspired by the implementation of Point Grouping Block, equations 9 through 12 of:
     Encoding Spatial Distribution of Convolutional Features for Texture Representation by Yong Xu et al.
+
+    However, our implementation shares parameters across channels by default.
     """
 
     def __init__(self, num_anchors, per_channel=False, **kwargs):

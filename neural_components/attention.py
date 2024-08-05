@@ -3,24 +3,49 @@ from typing import Any
 import tensorflow as tf
 import numpy as np
 
-from neural_components.custom_ops import sample_min_max_scaling, standardized_general_cosine_similarity
-from neural_components.fractal_geometry import LocalSingularityStrength, OrdinaryLeastSquares, SoftHistogramLayer, \
+from neural_components.custom_ops import sample_min_max_scaling
+from neural_components.fractal_geometry import LocalSingularityStrength, SoftHistogramLayer, \
     WeightedOrdinaryLeastSquares
 
 
 class MultifractalRecalibration(tf.keras.layers.Layer):
-    def __init__(self, max_scale, k, per_channel, **kwargs):
+    """
+    A Keras Layer that performs multifractal recalibration by computing local Hölder exponents
+    and approximating their probability using a non-linear mixture of K Gaussians learned as a softmax layer.
+
+    Attributes:
+        alpha_layer A layer that computes local Hölder exponents.
+        soft_histogram: A layer that approximates the probability of each exponent
+                        represented jointly by all channels of the conv. layer
+                        using a softmax layer as a surrogate of a non-linear mixture of K Gaussian mixtures.
+    """
+
+    def __init__(self, max_scale: Any, k: int, per_channel: bool, **kwargs: Any):
+        """
+        Args:
+            max_scale (Any): Maximum scale parameter for OLS estimate of local singularity strength layer.
+            k (int): Number of Gaussian mixtures used in the soft histogram layer.
+            per_channel (bool): Whether to compute histograms per channel.
+            **kwargs (Any): Additional keyword arguments for the Keras Layer base class.
+        """
         super(MultifractalRecalibration, self).__init__(**kwargs)
         self.alpha_layer = WeightedLocalSingularityStrength(max_scale=max_scale)
         self.soft_histogram = SoftHistogramLayer(num_anchors=k, per_channel=per_channel)
 
-    def build(self, input_shape):
+    def build(self, input_shape: tf.TensorShape):
         super(MultifractalRecalibration, self).build(input_shape)
 
-    def call(self, x):
+    def call(self, x: tf.Tensor) -> tf.Tensor:
+        """
+        Args:
+            x (tf.Tensor): Input tensor.
+
+        Returns:
+            tf.Tensor: Output tensor after applying multifractal recalibration.
+        """
         alphas = self.alpha_layer(x)
-        soft_counts = tf.reduce_sum(tf.nn.relu(self.soft_histogram(alphas)),
-                                    axis=-1)  # TODO: not sure about this ReLU; but we have bn before!
+        # Reduce over the K level sets
+        soft_counts = tf.reduce_sum(tf.nn.relu(self.soft_histogram(alphas)), axis=-1)
         return x + tf.nn.sigmoid(soft_counts)
 
 

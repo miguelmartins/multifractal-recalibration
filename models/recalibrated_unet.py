@@ -78,7 +78,6 @@ def get_sc_encoder_unet(channels_per_level, r=2, max_scale=3, input_shape=[224, 
     return tf.keras.models.Model(inputs=[input], outputs=[output])
 
 
-
 def get_srm_encoder_unet(channels_per_level, r=2, max_scale=3, input_shape=[224, 224, 3], n_classes=2, with_bn=True):
     input = tf.keras.layers.Input(shape=input_shape)
     n_levels = len(channels_per_level) - 1  # hierarchy levels in U-Net
@@ -126,8 +125,10 @@ def get_fca_encoder_unet(channels_per_level, r=2, low_freq=4, input_shape=[224, 
     output = tf.keras.layers.Conv2D(output_channel_dim, kernel_size=1, activation=final_activation_fn)(x)
     return tf.keras.models.Model(inputs=[input], outputs=[output])
 
-def get_histogram_unet(channels_per_level, max_scale=3, k=16, per_channel=False, input_shape=[224, 224, 3], n_classes=2,
-                       with_bn=True):
+
+def get_multifractal_unet(channels_per_level, max_scale=3, k=16, per_channel=False, input_shape=[224, 224, 3],
+                          n_classes=2,
+                          with_bn=True):
     input = tf.keras.layers.Input(shape=input_shape)
     n_levels = len(channels_per_level) - 1  # hierarchy levels in U-Net
     skips = []  # keep record of the output of each CNN contracting block
@@ -149,4 +150,3 @@ def get_histogram_unet(channels_per_level, max_scale=3, k=16, per_channel=False,
     # 1x1 for dense classification
     output = tf.keras.layers.Conv2D(output_channel_dim, kernel_size=1, activation=final_activation_fn)(x)
     return tf.keras.models.Model(inputs=[input], outputs=[output])
-
