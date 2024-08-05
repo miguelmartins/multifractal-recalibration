@@ -2,7 +2,7 @@ import tensorflow as tf
 
 from neural_components.attention import MonofractalRecalibration, SqueezeExcite, \
     MultifractalRecalibration, StyleBasedRecalibration, \
-    MultiSpectralChannelAttention
+    FrequencyChannelAttention, SpatialSqueezeExcite
 from neural_components.convolutional import ContractingLayer, UpsampleExpandingLayer
 
 
@@ -54,7 +54,7 @@ def get_se_unet(channels_per_level, r=2, max_scale=3, input_shape=[224, 224, 3],
     return tf.keras.models.Model(inputs=[input], outputs=[output])
 
 
-def get_sc_encoder_unet(channels_per_level, r=2, max_scale=3, input_shape=[224, 224, 3], n_classes=2, with_bn=True):
+def get_sc_encoder_unet(channels_per_level, r=2, input_shape=[224, 224, 3], n_classes=2, with_bn=True):
     input = tf.keras.layers.Input(shape=input_shape)
     n_levels = len(channels_per_level) - 1  # hierarchy levels in U-Net
     skips = []  # keep record of the output of each CNN contracting block
@@ -112,7 +112,7 @@ def get_fca_encoder_unet(channels_per_level, r=2, low_freq=4, input_shape=[224, 
     # Encoder
     for n_channel in channels_per_level[:-1]:
         x = ContractingLayer(n_filters=n_channel, kernel_size=3, padding='same', with_bn=with_bn)(x)
-        x = MultiSpectralChannelAttention(r=2, low_freq=low_freq)(x)
+        x = FrequencyChannelAttention(r=2, low_freq=low_freq)(x)
         skips.append(x)
         x = tf.keras.layers.MaxPool2D(pool_size=(2, 2))(x)
     # Bottleneck
