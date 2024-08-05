@@ -188,12 +188,11 @@ class SoftHistogramLayer(tf.keras.layers.Layer):
 
     def build(self, input_shape):
         num_channels = input_shape[-1]
-        # TODO: investigate why these shapes behave similarly
         if self.per_channel:
             self.anchor_tensor = self.add_weight(name="anchor_tensor", shape=(num_channels, self.num_anchors),
                                                  dtype=tf.float32,
                                                  initializer="uniform",
-                                                 trainable=True)  # TODO: this initialization is different in original implementation
+                                                 trainable=True)
 
             self.membership_weights = self.add_weight(name="membership_weights", shape=(num_channels, self.num_anchors),
                                                       dtype=tf.float32, initializer="uniform",
@@ -203,7 +202,7 @@ class SoftHistogramLayer(tf.keras.layers.Layer):
             self.anchor_tensor = self.add_weight(name="anchor_tensor", shape=(1, self.num_anchors),
                                                  dtype=tf.float32,
                                                  initializer="uniform",
-                                                 trainable=True)  # TODO: this initialization is different in original implementation
+                                                 trainable=True)
 
             self.membership_weights = self.add_weight(name="membership_weights", shape=(1, self.num_anchors),
                                                       dtype=tf.float32, initializer="uniform",
