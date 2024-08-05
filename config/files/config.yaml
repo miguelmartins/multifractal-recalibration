@@ -1,0 +1,27 @@
+callbacks:
+   model_checkpoint:
+      save_best_only: true
+      monitor: val_loss
+      patience: 5
+      save_weights_only: True
+      mode: min
+
+   scheduler:
+      monitor: loss
+      factor: 0.5
+      patience: 10
+
+data:
+  target_size: [224, 224]
+  n_classes: 2
+
+model:
+  level_depth: [32, 64, 128, 256]
+
+training:
+  batch_size: 16
+  epochs: 400
+  learning_rate: 0.0001
+  loss: weighted
+  optimizer: adam
+  metrics: baseline
