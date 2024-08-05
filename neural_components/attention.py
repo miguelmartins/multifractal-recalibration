@@ -125,12 +125,26 @@ class MonofractalRecalibration(tf.keras.layers.Layer):
         return x * excite[:, tf.newaxis, tf.newaxis, :]
 
 
+import tensorflow as tf
+from typing import Any, Dict
+
+
 class SqueezeExcite(tf.keras.layers.Layer):
-    def __init__(self, r, **kwargs):
+    """
+    Squeeze and Excitation block for channel-wise attention.
+
+    This layer implements the squeeze and excitation operation as described in:
+    "Squeeze-and-Excitation Networks" by Jie Hu, Li Shen, and Gang Sun.
+
+    Args:
+        r (int): Reduction ratio for the bottleneck layer.
+    """
+
+    def __init__(self, r: int, **kwargs: Any):
         super(SqueezeExcite, self).__init__(**kwargs)
         self.r = r
 
-    def build(self, input_shape):
+    def build(self, input_shape: tf.TensorShape):
         num_channels = input_shape[-1]
         self.gap = tf.keras.layers.GlobalAvgPool2D()
         self.w1 = tf.keras.layers.Dense(num_channels // self.r,
@@ -139,12 +153,12 @@ class SqueezeExcite(tf.keras.layers.Layer):
                                         activation='sigmoid')
         super(SqueezeExcite, self).build(input_shape)
 
-    def call(self, x):
+    def call(self, x: tf.Tensor) -> tf.Tensor:
         squeeze = self.gap(x)
         excite = self.w2(self.w1(squeeze))
         return x * excite[:, tf.newaxis, tf.newaxis, :]
 
-    def get_config(self):
+    def get_config(self) -> Dict[str, Any]:
         config = super(SqueezeExcite, self).get_config()
         config.update({
             "r": self.r
@@ -152,12 +166,25 @@ class SqueezeExcite(tf.keras.layers.Layer):
         return config
 
 
+import tensorflow as tf
+from typing import Any, Dict
+
+
 class SpatialSqueezeExcite(tf.keras.layers.Layer):
-    def __init__(self, r, **kwargs):
+    """
+    scSE layer as in Roy, Abhijit Guha, Nassir Navab, and Christian Wachinger.
+    "Recalibrating fully convolutional networks with spatial and channel “squeeze and excitation” blocks."
+
+    Args:
+        r (int): Reduction ratio for the bottleneck layer.
+        **kwargs (Any): Additional keyword arguments for the base Layer class.
+    """
+
+    def __init__(self, r: int, **kwargs: Any) -> None:
         super(SpatialSqueezeExcite, self).__init__(**kwargs)
         self.r = r
 
-    def build(self, input_shape):
+    def build(self, input_shape: tf.TensorShape) -> None:
         num_channels = input_shape[-1]
         self.gap = tf.keras.layers.GlobalAvgPool2D()
         self.w1 = tf.keras.layers.Dense(num_channels // self.r,
@@ -169,13 +196,13 @@ class SpatialSqueezeExcite(tf.keras.layers.Layer):
                                            activation='sigmoid')
         super(SpatialSqueezeExcite, self).build(input_shape)
 
-    def call(self, x):
+    def call(self, x: tf.Tensor) -> tf.Tensor:
         squeeze = self.gap(x)
         channel_excite = x * self.w2(self.w1(squeeze))[:, tf.newaxis, tf.newaxis, :]
         spatial_excite = x * self.conv(x)
         return tf.reduce_max(tf.stack([channel_excite, spatial_excite], axis=-1), axis=-1)
 
-    def get_config(self):
+    def get_config(self) -> Dict[str, Any]:
         config = super(SpatialSqueezeExcite, self).get_config()
         config.update({
             "r": self.r
@@ -184,39 +211,96 @@ class SpatialSqueezeExcite(tf.keras.layers.Layer):
 
 
 class StyleBasedRecalibration(tf.keras.layers.Layer):
-    def __init__(self, **kwargs):
+    """
+    Style-Based Recalibration block for feature recalibration based on global statistics.
+
+    This layer recalibrates the input features based on global average and standard deviation
+    statistics, leveraging batch normalization for style-based adjustments.
+
+    Implementation of the method described in Lee, HyunJae, Hyo-Eun Kim, and Hyeonseob Nam.
+    "Srm: A style-based recalibration module for convolutional neural networks."
+    Proceedings of the IEEE/CVF International conference on computer vision. 2019.
+
+    Args:
+        **kwargs (Any): Additional keyword arguments for the base Layer class.
+    """
+
+    def __init__(self, **kwargs: Any):
         super(StyleBasedRecalibration, self).__init__(**kwargs)
         self.bn = tf.keras.layers.BatchNormalization()
 
-    def build(self, input_shape):
+    def build(self, input_shape: tf.TensorShape):
+        """
+        Builds the layer weights based on the input shape.
+
+        Args:
+            input_shape (tf.TensorShape): Shape of the input tensor.
+        """
         num_channels = input_shape[-1]
         self.gap = tf.keras.layers.GlobalAvgPool2D()
-        self.w = tf.keras.layers.Dense(1, use_bias=False,
-                                       activation=None)
+        self.w = tf.keras.layers.Dense(1, use_bias=False, activation=None)
         super(StyleBasedRecalibration, self).build(input_shape)
 
-    def call(self, x, training=False):
+    def call(self, x: tf.Tensor, training: bool = False) -> tf.Tensor:
+        """
+        Forward pass for the layer.
+
+        Args:
+            x (tf.Tensor): Input tensor.
+            training (bool): Flag to indicate if the layer is in training mode.
+
+        Returns:
+            tf.Tensor: Output tensor after applying style-based recalibration.
+        """
         avg = self.gap(x)
         std = tf.math.sqrt(tf.math.reduce_variance(x, axis=[1, 2]) + 1e-12)
         t = tf.keras.layers.Concatenate(axis=-1)([avg[..., tf.newaxis], std[..., tf.newaxis]])
         z = tf.squeeze(self.w(t), axis=-1)
         return x * tf.nn.sigmoid(self.bn(z, training=training))[:, tf.newaxis, tf.newaxis, :]
 
-    def get_config(self):
+    def get_config(self) -> Dict[str, Any]:
+        """
+        Returns the configuration of the layer.
+
+        Returns:
+            Dict[str, Any]: Configuration dictionary for the layer.
+        """
         config = super(StyleBasedRecalibration, self).get_config()
         return config
 
 
-class MultiSpectralChannelAttention(tf.keras.layers.Layer):
-    def __init__(self, r=2, low_freq=4, **kwargs):
-        super(MultiSpectralChannelAttention, self).__init__(**kwargs)
+class FrequencyChannelAttention(tf.keras.layers.Layer):
+    """
+    Multi-Spectral Channel Attention block for feature recalibration using Discrete Cosine Transform (DCT) bases.
+
+    Implementation of the method described in Qin, Zequn, et al.
+    "Fcanet: Frequency channel attention networks."
+    Proceedings of the IEEE/CVF international conference on computer vision. 2021.
+
+    Args:
+        r (int): Reduction ratio for the bottleneck layer. Default is 2.
+        low_freq (int): The lower frequency to consider for DCT bases. Default is 4.
+    """
+
+    def __init__(self, r: int = 2, low_freq: int = 4, **kwargs: Any):
+        super(FrequencyChannelAttention, self).__init__(**kwargs)
         self.r = r
         self.low_freq = low_freq
         self.num_bases = tf.cast(low_freq ** 2, tf.int32)
         self.flatten = tf.keras.layers.Flatten()
 
     @staticmethod
-    def _get_dct_bases(spatial_resolution=224, channel_resolution=32, low_freq=None):
+    def _get_dct_bases(spatial_resolution: int = 224, channel_resolution: int = 32, low_freq: int = None) -> tf.Tensor:
+        """
+        Generates DCT (Discrete Cosine Transform) bases for given spatial and channel resolutions.
+        Args:
+            spatial_resolution (int): Spatial resolution of the input tensor. Default is 224.
+            channel_resolution (int): Channel resolution of the input tensor. Default is 32.
+            low_freq (int): The lower frequency to consider for DCT bases.
+
+        Returns:
+            tf.Tensor: DCT bases tensor.
+        """
         x = tf.range(spatial_resolution)
         y = tf.range(channel_resolution)
         h, w = tf.meshgrid(x, y, indexing='ij')
@@ -233,7 +317,7 @@ class MultiSpectralChannelAttention(tf.keras.layers.Layer):
         return tf.cast(dct_bases[np.newaxis, ...],
                        dtype=tf.float32)  # add batch dimension and cast to tf.Tensor float32
 
-    def build(self, input_shape):
+    def build(self, input_shape: tf.TensorShape):
         num_channels = input_shape[-1]
         _dct_bases = self._get_dct_bases(spatial_resolution=input_shape[1],
                                          channel_resolution=num_channels,
@@ -245,9 +329,9 @@ class MultiSpectralChannelAttention(tf.keras.layers.Layer):
                                         activation='relu')
         self.w2 = tf.keras.layers.Dense(num_channels,
                                         activation='sigmoid')
-        super(MultiSpectralChannelAttention, self).build(input_shape)
+        super(FrequencyChannelAttention, self).build(input_shape)
 
-    def call(self, x):
+    def call(self, x: tf.Tensor) -> tf.Tensor:
         batch_size = tf.shape(x)[0]
         height = tf.shape(x)[1]
         width = tf.shape(x)[2]
@@ -258,7 +342,7 @@ class MultiSpectralChannelAttention(tf.keras.layers.Layer):
 
         return x * self.w2(self.w1(freqs))[:, tf.newaxis, tf.newaxis, :]
 
-    def get_config(self):
-        config = super(MultiSpectralChannelAttention, self).get_config()
-        config.update({'low_freq': self.low_freq})
+    def get_config(self) -> Dict[str, Any]:
+        config = super(FrequencyChannelAttention, self).get_config()
+        config.update({'r': self.r, 'low_freq': self.low_freq})
         return config

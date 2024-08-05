@@ -6,7 +6,7 @@ import tensorflow as tf
 
 from config.custom_utils import get_cuda_device_environ, get_config_directory
 from etl.preprocessing import get_segmentation_data, normalize_fn, AugmentationModel
-from models.recalibrated_unet import get_se_unet
+from models.recalibrated_unet import get_srm_encoder_unet
 from config.parser import ExperimentConfigParser
 from sklearn.model_selection import KFold
 
@@ -19,6 +19,7 @@ LOG_DIR = os.path.join(ROOT_DIR, 'kvasir/five_fold')
 DATA_PATH = '/home/miguelmartins/Datasets/kvasir-seg/Kvasir-SEG/'
 
 NUM_FOLDS = 5
+
 
 def main():
     config_data = ExperimentConfigParser(name=f'kvasir-seg_pid{os.getpid()}',
@@ -38,10 +39,10 @@ def main():
     for fold, (train_index, val_index) in enumerate(kf.split(dataset_np_x)):
         print(f"Fold {fold} starting...")
         fold_data = ExperimentConfigParser(
-            name=f'cse-unet-cuda{get_cuda_device_environ()}-{NUM_FOLDS}-folds-{fold}-kvasir-seg_pid{os.getpid()}',
+            name=f'srm-unet-cuda{get_cuda_device_environ()}-{NUM_FOLDS}-folds-{fold}-kvasir-seg_pid{os.getpid()}',
             config_path=CONFIG_FILE,
             log_dir=LOG_DIR)
-        model = get_se_unet(channels_per_level=fold_data.config.model.level_depth,
+        model = get_srm_encoder_unet(channels_per_level=fold_data.config.model.level_depth,
                          input_shape=config_data.config.data.target_size + [3],
                          with_bn=False)
         model.compile(loss=fold_data.loss_object,
