@@ -51,7 +51,7 @@ The exact files used for these experiments will be linked  when we have a DOI of
 
 Note that for ISIC18 we used the [public implementation](https://github.com/NITR098/Awesome-U-Net) of [8] to get the numpy files.
 
-One can simply get the original files of each dataset, and place them in the `datasets` directory. 
+One can simply get the original files of each dataset, and place them in the `/path/to/projects/datasets` directory. 
 
 Note that the scripts in `experiments` are expecting the following file and directory structure.   
 
