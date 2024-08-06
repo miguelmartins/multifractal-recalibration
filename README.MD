@@ -9,6 +9,25 @@ with none or with other attention functions that may also describe each channel 
 Frequency Channel Attention (FCA) [4]. 
 Our experiments cover three public datasets from diverse modalities: ISIC18 (dermoscopy) [5], Kvasir-SEG (endoscopy) [6], and BUSI (ultrasound) [7].  
 
+## Experimental Results 
+This table collects the results of the experiments (DICE score) in:  `experiments/isic18`, `experiments/kvasir`, and `experiments/busi`.
+
+| Model                           | ISIC18                            | Kvasir-SEG                       | BUSI                              |
+|---------------------------------|-----------------------------------|----------------------------------|-----------------------------------|
+| U-Net                           | 85.40 ± 0.25                      | 72.22 ± 1.82                     | 62.20 ± 2.40                      |
+| +cSE                            | 85.94 ± 0.36<sup>†</sup>          | 72.72 ± 1.52                     | 65.36 ± 1.36                      |
+| +scSE                           | 85.92 ± 0.29<sup>†</sup>          | 72.94 ± 1.07                     | 64.82 ± 1.03                      |
+| +SRM                            | 84.33 ± 1.27                      | 61.13 ± 3.42                     | 68.09 ± 3.14<sup>†</sup>          |
+| +FCA                            | 86.19 ± 0.75                      | 70.00 ± 2.51                     | 66.27 ± 2.48                      |
+| +Mono (ours)                    | 86.24 ± 0.27<sup>‡</sup>          | 71.86 ± 2.37                     | **69.00 ± 2.53<sup>‡</sup>**      |
+| +Multi (ours)                   | **86.26 ± 0.28<sup>‡</sup>**      | **74.76 ± 2.20<sup>†</sup>**     | 66.94 ± 2.45<sup>†</sup>          |
+
+<sup>†</sup> The null-hypothesis of the pairwise t-test with regards to the U-Net baseline is rejected with p ≤ 0.05.
+
+<sup>‡</sup> The null-hypothesis of the pairwise t-test with regards to the U-Net baseline is rejected with p ≤ 0.01.
+
+**Bold** indicates the best mean results.
+
 
 
 ## Recommended requirements
@@ -53,26 +72,9 @@ Note that for ISIC18 we used the [public implementation](https://github.com/NITR
    │                  └── malign *.png  
    └── 
    ```         
-## Experimental Results 
-This table collects the results of the experiments (DICE score) in:  `experiments/isic18`, `experiments/kvasir`, and `experiments/busi`.
 
-| Model                           | ISIC18                            | Kvasir-SEG                       | BUSI                              |
-|---------------------------------|-----------------------------------|----------------------------------|-----------------------------------|
-| U-Net                           | 85.40 ± 0.25                      | 72.22 ± 1.82                     | 62.20 ± 2.40                      |
-| +cSE                            | 85.94 ± 0.36<sup>†</sup>          | 72.72 ± 1.52                     | 65.36 ± 1.36                      |
-| +scSE                           | 85.92 ± 0.29<sup>†</sup>          | 72.94 ± 1.07                     | 64.82 ± 1.03                      |
-| +SRM                            | 84.33 ± 1.27                      | 61.13 ± 3.42                     | 68.09 ± 3.14<sup>†</sup>          |
-| +FCA                            | 86.19 ± 0.75                      | 70.00 ± 2.51                     | 66.27 ± 2.48                      |
-| +Mono (ours)                    | 86.24 ± 0.27<sup>‡</sup>          | 71.86 ± 2.37                     | **69.00 ± 2.53<sup>‡</sup>**      |
-| +Multi (ours)                   | **86.26 ± 0.28<sup>‡</sup>**      | **74.76 ± 2.20<sup>†</sup>**     | 66.94 ± 2.45<sup>†</sup>          |
-
-<sup>†</sup> The null-hypothesis of the pairwise t-test with regards to the U-Net baseline is rejected with p ≤ 0.05.
-
-<sup>‡</sup> The null-hypothesis of the pairwise t-test with regards to the U-Net baseline is rejected with p ≤ 0.01.
-
-**Bold** indicates the best mean results.
-
-
+## Supplementary notebooks
+We have included a notebook with that serves as supplement for the experiments around the Excitation PCA Threshold (EPT) on the `notebooks` folder.
 
 ## References 
 [1] Hu, Jie, Li Shen, and Gang Sun. "Squeeze-and-excitation networks." Proceedings of the IEEE conference on computer vision and pattern recognition. 2018.
