@@ -47,9 +47,13 @@ This table collects the results of the experiments (DICE score) in:  `experiment
 Note that this code was developed using Tensorflow 2.14. 
 
 ## Dataset files
-The exact files used for these experiments can be found [here]()
+The exact files used for these experiments will be linked  when we have a DOI of the article to associate with a Zenodo repository.
 
 Note that for ISIC18 we used the [public implementation](https://github.com/NITR098/Awesome-U-Net) of [8] to get the numpy files.
+
+One can simply get the original files of each dataset, and place them in the `datasets` directory. 
+
+Note that the scripts in `experiments` are expecting the following file and directory structure.   
 
   ```bash
    .
@@ -74,7 +78,7 @@ Note that for ISIC18 we used the [public implementation](https://github.com/NITR
    ```         
 
 ## Supplementary notebooks
-We have included a notebook with that serves as supplement for the experiments around the Excitation PCA Threshold (EPT) on the `notebooks` folder.
+We have included a notebook with that serves as a supplement for the experiments around the Excitation PCA Threshold (EPT) in the `notebooks` folder.
 
 ## References 
 [1] Hu, Jie, Li Shen, and Gang Sun. "Squeeze-and-excitation networks." Proceedings of the IEEE conference on computer vision and pattern recognition. 2018.
