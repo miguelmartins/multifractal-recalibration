@@ -5,15 +5,13 @@ import os
 import tensorflow as tf
 
 from config.custom_utils import get_cuda_device_environ, get_config_directory
-from etl.preprocessing import AugmentationModel
-from experiments.isic_18.fca_unet_isic import fix_shape
+from etl.preprocessing import AugmentationModel, fix_shape
 from models.unet import get_unet
 from config.parser import ExperimentConfigParser
 from sklearn.model_selection import KFold
 
-ROOT_DIR = script_dir = Path(__file__).resolve().parent.parent
+ROOT_DIR = script_dir = Path(__file__).resolve().parent.parent.parent
 CONFIG_PATH = get_config_directory()
-
 
 CONFIG_FILE = os.path.join(CONFIG_PATH, 'files/config.yaml')
 LOG_DIR = os.path.join(ROOT_DIR, 'isic18/five_fold')
@@ -21,8 +19,8 @@ LOG_DIR = os.path.join(ROOT_DIR, 'isic18/five_fold')
 NUM_FOLDS = 5
 
 def main():
-    dataset_np_x = np.load('/home/miguelmartins/Datasets/ISIC2018/np/X_tr_224x224.npy')
-    dataset_np_y = np.load('/home/miguelmartins/Datasets/ISIC2018/np/Y_tr_224x224.npy')
+    dataset_np_x = np.load(os.path.join(ROOT_DIR, 'datasets/isic18/X_tr_224x224.npy'))
+    dataset_np_y = np.load(os.path.join(ROOT_DIR, 'datasets/isic18/Y_tr_224x224.npy'))
 
     aug_model = AugmentationModel()
     kf = KFold(n_splits=NUM_FOLDS, shuffle=False)

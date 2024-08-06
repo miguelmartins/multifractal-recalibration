@@ -10,7 +10,7 @@ from models.unet import get_unet
 from config.parser import ExperimentConfigParser
 from sklearn.model_selection import KFold
 
-ROOT_DIR = script_dir = Path(__file__).resolve().parent.parent
+ROOT_DIR = script_dir = Path(__file__).resolve().parent.parent.parent
 CONFIG_PATH = get_config_directory()
 
 
