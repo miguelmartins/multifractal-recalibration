@@ -5,8 +5,7 @@ import os
 import tensorflow as tf
 
 from config.custom_utils import get_cuda_device_environ, get_config_directory
-from etl.preprocessing import fix_shape
-from experiments.busi.fca_busi import get_augment_fn
+from etl.preprocessing import fix_shape, AugmentationModel
 from models.recalibrated_unet import get_se_unet
 from config.parser import ExperimentConfigParser
 from sklearn.model_selection import KFold
@@ -24,6 +23,7 @@ def main():
     dataset_np_x = np.load('/home/miguelmartins/Datasets/ISIC2018/np/X_tr_224x224.npy')
     dataset_np_y = np.load('/home/miguelmartins/Datasets/ISIC2018/np/Y_tr_224x224.npy')
 
+    aug_model = AugmentationModel()
     kf = KFold(n_splits=NUM_FOLDS, shuffle=False)
     for fold, (train_index, val_index) in enumerate(kf.split(dataset_np_x)):
         print(f"Fold {fold} starting...")
@@ -54,7 +54,7 @@ def main():
         test = test.batch(fold_data.config.training.batch_size, num_parallel_calls=tf.data.AUTOTUNE)
 
         train = train.map(fix_shape, num_parallel_calls=tf.data.AUTOTUNE)
-        train = train.map(get_augment_fn, num_parallel_calls=tf.data.experimental.AUTOTUNE)
+        train = train.map(aug_model.augment_binary_segmentation, num_parallel_calls=tf.data.experimental.AUTOTUNE)
 
         dev = dev.map(fix_shape, num_parallel_calls=tf.data.AUTOTUNE)
         test = test.map(fix_shape, num_parallel_calls=tf.data.AUTOTUNE)

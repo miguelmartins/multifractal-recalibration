@@ -10,7 +10,7 @@ from models.recalibrated_unet import get_sc_encoder_unet
 from config.parser import ExperimentConfigParser
 from sklearn.model_selection import StratifiedKFold, train_test_split
 
-ROOT_DIR = script_dir = Path(__file__).resolve().parent.parent
+ROOT_DIR = script_dir = Path(__file__).resolve().parent.parent.parent
 CONFIG_PATH = get_config_directory()
 
 CONFIG_FILE = os.path.join(CONFIG_PATH, 'files/config.yaml')
