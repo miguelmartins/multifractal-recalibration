@@ -47,7 +47,7 @@ This table collects the results of the experiments (DICE score) in:  `experiment
 Note that this code was developed using Tensorflow 2.14. 
 
 ## Dataset files
-The exact files used for these experiments will be linked  when we have a DOI of the article to associate with a Zenodo repository.
+The exact files used for these experiments can be found in [our OSF repository](https://osf.io/y4djz/?view_only=8eeba61afd104c678558c0da5a82b499).
 
 Note that for ISIC18 we used the [public implementation](https://github.com/NITR098/Awesome-U-Net) of [8] to get the numpy files.
 
