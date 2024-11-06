@@ -1,6 +1,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
 # Monofractal and Multifractal Recalibration of Fully Convolutional Networks for Medical Image Segmentation
 
+__Pre-print available [here](https://www.techrxiv.org/users/691409/articles/1236239-monofractal-and-multifractal-recalibration-of-fully-convolutional-networks-for-medical-image-segmentation)__
 We propose two attention functions that capture cross-channel statistical scaling regularities:
 Monofractal and Multifractal recalibration. 
 We build an experimental framework centered around the U-Net and show that these approaches, 
